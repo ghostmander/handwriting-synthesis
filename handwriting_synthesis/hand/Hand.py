@@ -1,5 +1,6 @@
 import logging
 import os
+import random
 
 import numpy as np
 
@@ -9,9 +10,10 @@ from handwriting_synthesis.hand._draw import _draw
 from handwriting_synthesis.rnn import RNN
 
 
+
 class Hand(object):
     def __init__(self):
-        os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+        os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
         self.nn = RNN(
             log_dir='logs',
             checkpoint_dir=checkpoint_path,
@@ -37,28 +39,32 @@ class Hand(object):
         )
         self.nn.restore()
 
-    def write(self, filename, lines, biases=None, styles=None, stroke_colors=None, stroke_widths=None):
+    def write(self, filename, lines, biases=None, styles=None, stroke_colors=None, stroke_widths=None, alignCenter=True):
         valid_char_set = set(drawing.alphabet)
+        extra_char_set = set(drawing.EXTRA_CHAR_MAP)
         for line_num, line in enumerate(lines):
-            if len(line) > 75:
-                raise ValueError(
-                    (
-                        "Each line must be at most 75 characters. "
-                        "Line {} contains {}"
-                    ).format(line_num, len(line))
-                )
-
+            if len(line) > drawing.MAX_CHAR_LEN:
+                raise ValueError((
+                    f"Each line must be at most {drawing.MAX_CHAR_LEN} characters. "
+                    f"Line {line_num} contains {len(line)}"
+                ))
+            newLine = ""
             for char in line:
                 if char not in valid_char_set:
-                    raise ValueError(
-                        (
-                            "Invalid character {} detected in line {}. "
-                            "Valid character set is {}"
-                        ).format(char, line_num, valid_char_set)
-                    )
+                    if char in extra_char_set:
+                        newLine += random.choice(drawing.EXTRA_CHAR_MAP[char])
+                    else:
+                        raise ValueError((
+                            f"Invalid character {char} detected in line {line_num}. "
+                            f"Valid character set is {valid_char_set.union(extra_char_set)}.\n"
+                            f"Line content: \"{line}\""
+                        ))
+                else:
+                    newLine += char
+            lines[line_num] = newLine
 
         strokes = self._sample(lines, biases=biases, styles=styles)
-        _draw(strokes, lines, filename, stroke_colors=stroke_colors, stroke_widths=stroke_widths)
+        _draw(strokes, lines, filename, stroke_colors=stroke_colors, stroke_widths=stroke_widths, alignCenter=alignCenter)
 
     def _sample(self, lines, biases=None, styles=None):
         num_samples = len(lines)

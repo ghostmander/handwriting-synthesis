@@ -7,6 +7,22 @@ import numpy as np
 from scipy.interpolate import interp1d
 from scipy.signal import savgol_filter
 
+EXTRA_CHAR_MAP = {
+    "_": "-",
+    "Q": "qO",
+    "X": "xK",
+    "Z": "z2",
+    "+": "t",
+    "=": "-",
+    "*": "x",
+    "/": "Il",
+    "[": "(",
+    "{": "(",
+    "]": ")",
+    "}": ")",
+    "<": "(c",
+    ">": ")",
+}
 alphabet = [
     '\x00', ' ', '!', '"', '#', "'", '(', ')', ',', '-', '.',
     '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', ':', ';',
@@ -21,7 +37,7 @@ alpha_to_num = defaultdict(int, list(map(reversed, enumerate(alphabet))))
 num_to_alpha = dict(enumerate(alphabet_ord))
 
 MAX_STROKE_LEN = 1200
-MAX_CHAR_LEN = 75
+MAX_CHAR_LEN = 90
 
 
 def align(coords):
