@@ -88,7 +88,10 @@ linesPerPage = 28
 
 if __name__ == '__main__':
     hand = Hand()
-    lines = splitter(open('towrite.txt').read())
+    try:
+        lines = splitter(open('towrite.txt').read())
+    except FileNotFoundError:
+        raise FileNotFoundError("File 'towrite.txt' not found. Please create the file and type the text to be handwritten.")
     if hasInvalidCharacters(lines):
         print("Invalid characters detected. Exiting...")
         exit(1)
